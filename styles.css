@@ -1,0 +1,434 @@
+/* =========================================================
+   Шрифт логотипа.
+   MTS Wide в Windows устанавливается как набор отдельных начертаний,
+   но браузеры (DirectWrite) видят только семейство "MTS Wide" без
+   доступа к имени "…Medium". Через @font-face + local() привязываем
+   имя "MTS Wide Medium" напрямую к установленному файлу по его
+   Full name / PostScript name — работает и в Chromium, и в Firefox.
+   ========================================================= */
+@font-face {
+  font-family: "MTS Wide Medium";
+  src: local("MTS Wide Medium"), local("MTSWide-Medium");
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: "MTS Wide Bold";
+  src: local("MTS Wide Bold"), local("MTSWide-Bold");
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* =========================================================
+   Дизайн-токены из Figma (SideBar)
+   ========================================================= */
+:root {
+  --brand-red:      #ff0032;  /* Brand/MTS Red            */
+  --bg-primary:     #ffffff;  /* Background/Primary        */
+  --bg-secondary:   #f2f3f7;  /* Background/Secondary      */
+  --menu-selected:  #f2f3f7;  /* Menu/Background/Selected  */
+  --stroke:         rgba(188,195,208,0.5); /* Background/Stroke */
+  --icon-primary:   #1d2023;  /* Icons/Primary             */
+  --text-primary:   #1d2023;  /* Text/Primary              */
+  --bg-inverted:    #1d2023;  /* Background/Inverted (тултип) */
+  --text-inverted:  #fafafa;  /* Text/Inverted (тултип)    */
+  --text-secondary: #626c77;  /* Text/Secondary            */
+  --text-tertiary:  #969fa8;  /* Text/Tertiary             */
+  --bg-elevated:    #ffffff;  /* Background/Primary Elevated (панель меню) */
+  --canvas:         #e4e7ef;  /* фон рабочей области        */
+
+  /* Типографика */
+  --font-compact: "MTS Compact", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-wide:    "MTS Wide Medium", "MTS Wide", "MTS Compact", -apple-system, "Segoe UI", sans-serif;
+  --p4-size: 14px;  --p4-line: 20px;   /* Paragraph/P4 Regular */
+
+  /* Геометрия (значения из Figma) */
+  --sidebar-w-expanded: 220px;
+  --sidebar-w-collapsed: 68px;
+  --cell-radius: 12px;
+}
+
+/* =========================================================
+   Тёмная тема.
+   Значения сайдбара — точно из Figma (тёмный режим токенов).
+   Значения меню/холста — производные (уточнить по тёмным токенам меню).
+   ========================================================= */
+:root[data-theme="dark"] {
+  --bg-primary:     #000000;  /* точно из Figma */
+  --bg-secondary:   #26282b;  /* производное */
+  --bg-elevated:    #1c1c1e;  /* производное (панель меню) */
+  --menu-selected:  #626c7740;/* точно из Figma */
+  --stroke:         #7f8c9959;/* точно из Figma */
+  --icon-primary:   #fafafa;  /* точно из Figma */
+  --text-primary:   #fafafa;  /* точно из Figma */
+  --text-secondary: #969fa8;  /* производное */
+  --text-tertiary:  #7f8c99;  /* производное */
+  --bg-inverted:    #fafafa;  /* инверсия для тултипа */
+  --text-inverted:  #1d2023;  /* инверсия для тултипа */
+  --canvas:         #17181a;  /* производное */
+}
+
+/* Тёмная тема: точечные доводки для элементов с «зашитым» цветом */
+:root[data-theme="dark"] .content p { color: #969fa8; }
+:root[data-theme="dark"] .pm-logout:hover { background: #303236; }
+/* Иконка выхода — единственная «зашито-тёмная» в меню, инвертируем в светлую */
+:root[data-theme="dark"] .pm-logout img { filter: invert(1); }
+/* Стрелка тултипа — светлая версия под инвертированную плашку */
+:root[data-theme="dark"] .nav-item[aria-label]::before {
+  background-image: url("icons/tooltip-arrow-light.svg");
+}
+
+/* =========================================================
+   Базовый сброс и страница
+   ========================================================= */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-compact);
+  color: var(--text-primary);
+  background: var(--canvas); /* серый холст, как в Figma */
+}
+
+.app { display: flex; min-height: 100vh; }
+
+/* =========================================================
+   Sidebar
+   ========================================================= */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;                 /* gap между лого / меню / футером */
+  width: var(--sidebar-w-expanded);
+  min-height: 100vh;
+  padding: 6px 8px;          /* px-8 py-6 из Figma */
+  background: var(--bg-primary);
+  transition: width 0.25s ease;
+}
+
+/* Свёрнутое состояние (Size S = 68px) */
+.sidebar[data-state="collapsed"] { width: var(--sidebar-w-collapsed); }
+
+.sidebar[data-state="collapsed"] .nav-item__label,
+.sidebar[data-state="collapsed"] .sidebar__brand-text { display: none; }
+
+.sidebar[data-state="collapsed"] .nav-item { justify-content: center; }
+
+.sidebar[data-state="collapsed"] .sidebar__brand { justify-content: center; }
+
+/* Шеврон кнопки: смотрит вправо, когда следующий шаг — разворот меню */
+.collapse-btn.is-expand .ico { transform: rotate(180deg); }
+
+/* ---------- Тултипы (только в свёрнутом состоянии) ----------
+   Плашка и стрелка рисуются псевдоэлементами пункта.
+   Текст берётся из aria-label. */
+.sidebar[data-state="collapsed"] .nav-item[aria-label]::after {
+  content: attr(aria-label);
+  position: absolute;
+  left: calc(100% + 12px);   /* 12px = зазор + место под стрелку */
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px 12px 12px;    /* верх меньше — текст оптически по центру */
+  border-radius: 12px;
+  background: var(--bg-inverted);
+  color: var(--text-inverted);
+  font-family: var(--font-compact);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+}
+
+/* Стрелка-хвостик из Figma (скруглённый кончик), указывает влево на иконку */
+.sidebar[data-state="collapsed"] .nav-item[aria-label]::before {
+  content: "";
+  position: absolute;
+  left: calc(100% + 3px);    /* правый край стрелки стыкуется с плашкой */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 9px;
+  height: 36px;
+  background: url("icons/tooltip-arrow.svg") no-repeat center / contain;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+}
+
+.sidebar[data-state="collapsed"] .nav-item[aria-label]:hover::after,
+.sidebar[data-state="collapsed"] .nav-item[aria-label]:hover::before {
+  opacity: 1;
+}
+
+/* ---------- Логотип ---------- */
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo {
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-sizing: content-box;   /* рамка снаружи знака, не сжимает его */
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--brand-red);
+  background: #ffffff;        /* фикс. цвет: знак MWS всегда на белом (нет тёмной версии) */
+}
+.logo img { width: 32px; height: 32px; display: block; }
+
+.sidebar__brand-text {
+  font-family: var(--font-wide);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 16px;
+  text-transform: uppercase;
+  color: var(--icon-primary);
+}
+
+/* ---------- Навигация ---------- */
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1;               /* занимает всё свободное место */
+}
+
+/* Пункт меню (nav / футер / кнопка) */
+.nav-item {
+  position: relative;        /* якорь для тултипа */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 12px;    /* py-14 px-12 из Figma */
+  border: none;
+  border-radius: var(--cell-radius);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--p4-size);
+  line-height: var(--p4-line);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.nav-item:hover { background: var(--bg-secondary); }
+.nav-item.is-active { background: var(--menu-selected); }
+
+.nav-item__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--icon-primary);   /* цвет inline-иконок (currentColor) */
+}
+.nav-item__icon img { width: 24px; height: 24px; display: block; }
+.nav-item__icon .ico {
+  width: 24px;
+  height: 24px;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+/* Переключение контур/заливка: по умолчанию виден контур */
+.nav-item__icon .icon-active { display: none; }
+.nav-item.is-active .icon-default { display: none; }
+.nav-item.is-active .icon-active { display: block; }
+
+.nav-item__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Футер ---------- */
+.sidebar__footer {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.sidebar__divider-wrap { padding: 7px 12px 8px; }
+.sidebar__divider {
+  height: 1px;
+  width: 100%;
+  border: none;
+  margin: 0;
+  background: var(--stroke);
+}
+
+/* =========================================================
+   Состояние Size M (Компактное, 80px): иконка + подпись снизу
+   ========================================================= */
+.sidebar[data-state="compact"] { width: 80px; }
+
+.sidebar[data-state="compact"] .sidebar__brand { justify-content: center; }
+.sidebar[data-state="compact"] .sidebar__brand-text { display: none; }
+
+/* Пункты навигации — квадрат 64×64: иконка сверху, подпись снизу */
+.sidebar[data-state="compact"] .sidebar__nav { align-items: center; }
+.sidebar[data-state="compact"] .sidebar__nav .nav-item {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 64px;
+  height: 64px;
+  padding: 0 4px;
+  border-radius: 16px;         /* в макете у пунктов M радиус 16 */
+  text-align: center;
+}
+.sidebar[data-state="compact"] .sidebar__nav .nav-item__label {
+  width: 100%;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Футер в компактном виде — только иконки по центру */
+.sidebar[data-state="compact"] .sidebar__footer .nav-item { justify-content: center; }
+.sidebar[data-state="compact"] .sidebar__footer .nav-item__label { display: none; }
+
+/* =========================================================
+   Контекстное меню профиля
+   ========================================================= */
+.profile-wrap { position: relative; }
+
+.profile-menu {
+  position: absolute;
+  left: 100%;                /* на 8px левее прежнего — лёгкий нахлёст на сайдбар */
+  bottom: 0;
+  width: 312px;
+  padding: 12px 0;
+  background: var(--bg-elevated);
+  border-radius: 20px;
+  box-shadow: 0 12px 20px 0 rgba(0,0,0,0.14),
+              0 4px 24px 0 rgba(0,0,0,0.12);
+  z-index: 100;
+}
+.profile-menu[hidden] { display: none; }
+
+.pm-page { display: flex; flex-direction: column; gap: 12px; padding: 0 12px; }
+.pm-page[hidden] { display: none; }
+
+/* Блок с именем */
+.pm-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.pm-nameblock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.pm-handle { font-size: 14px; line-height: 20px; color: var(--text-secondary, #626c77); }
+.pm-name   { font-size: 17px; line-height: 24px; color: var(--text-primary); }
+
+.pm-role {
+  font-family: var(--font-compact);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+}
+
+/* Кнопка выхода */
+.pm-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 32px;
+  border: none;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: "MTS Wide Bold", "MTS Wide", var(--font-compact);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: background 0.15s ease;
+}
+.pm-logout:hover { background: #e6e8ef; }
+.pm-logout img { width: 16px; height: 16px; }
+
+/* Разделитель */
+.pm-divider {
+  height: 1px;
+  width: 100%;
+  border: none;
+  margin: 0;
+  background: var(--stroke);
+}
+
+/* Ячейки */
+.pm-cells { display: flex; flex-direction: column; }
+
+.pm-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 36px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: var(--font-compact);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+.pm-cell:hover { background: var(--bg-secondary); }
+
+.pm-cell__icon { width: 24px; height: 24px; flex: none; }
+.pm-cell__label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+  top: -1px;               /* оптическая компенсация метрик MTS Compact */
+}
+.pm-cell__chev { width: 24px; height: 24px; flex: none; }
+
+/* Подзаголовок в подменю */
+.pm-subtitle-wrap { display: flex; flex-direction: column; gap: 8px; padding: 0 6px 6px; }
+.pm-subtitle { font-size: 14px; line-height: 20px; color: var(--text-tertiary, #969fa8); }
+
+/* Разделитель без подписи (подменю «Тема») */
+.pm-divider-plain { padding: 0 6px; }
+
+/* Галочка выбранного пункта — по умолчанию скрыта */
+.pm-check { width: 24px; height: 24px; flex: none; margin-left: auto; display: none; }
+.pm-cell.is-selected .pm-check { display: block; }
+
+/* =========================================================
+   Заглушка контента
+   ========================================================= */
+.content { flex: 1; padding: 40px; }
+.content h1 { margin: 0 0 12px; font-size: 28px; }
+.content p  { max-width: 520px; color: #4a4f57; line-height: 1.5; }
