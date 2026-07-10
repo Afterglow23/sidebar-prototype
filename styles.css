@@ -6,17 +6,31 @@
    имя "MTS Wide Medium" напрямую к установленному файлу по его
    Full name / PostScript name — работает и в Chromium, и в Firefox.
    ========================================================= */
+/* Файлы шрифтов вшиты в проект (папка fonts/) — грузятся у всех.
+   url() первым, local() как запасной для тех, у кого шрифт уже установлен. */
+@font-face {
+  font-family: "MTS Compact";
+  src: url("fonts/MTSCompact-Regular.ttf") format("truetype"),
+       local("MTS Compact");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 @font-face {
   font-family: "MTS Wide Medium";
-  src: local("MTS Wide Medium"), local("MTSWide-Medium");
+  src: url("fonts/MTSWide-Medium.ttf") format("truetype"),
+       local("MTS Wide Medium"), local("MTSWide-Medium");
   font-weight: 500;
   font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: "MTS Wide Bold";
-  src: local("MTS Wide Bold"), local("MTSWide-Bold");
+  src: url("fonts/MTSWide-Bold.ttf") format("truetype"),
+       local("MTS Wide Bold"), local("MTSWide-Bold");
   font-weight: 700;
   font-style: normal;
+  font-display: swap;
 }
 
 /* =========================================================
