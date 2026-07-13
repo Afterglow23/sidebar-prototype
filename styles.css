@@ -48,6 +48,8 @@
   --text-inverted:  #fafafa;  /* Text/Inverted (тултип)    */
   --text-secondary: #626c77;  /* Text/Secondary            */
   --text-tertiary:  #969fa8;  /* Text/Tertiary             */
+  --icon-secondary: #8d969f;  /* Icons/Secondary           */
+  --icon-tertiary:  #bbc1c7;  /* Icons/Tertiary            */
   --bg-elevated:    #ffffff;  /* Background/Primary Elevated (панель меню) */
   --canvas:         #e4e7ef;  /* фон рабочей области        */
 
@@ -77,6 +79,8 @@
   --text-primary:   #fafafa;  /* точно из Figma */
   --text-secondary: #969fa8;  /* производное */
   --text-tertiary:  #7f8c99;  /* производное */
+  --icon-secondary: #969fa8;  /* производное (ховер — светлее на тёмном) */
+  --icon-tertiary:  #7f8c99;  /* производное */
   --bg-inverted:    #fafafa;  /* инверсия для тултипа */
   --text-inverted:  #1d2023;  /* инверсия для тултипа */
   --canvas:         #17181a;  /* производное */
@@ -87,8 +91,9 @@
 :root[data-theme="dark"] .pm-logout:hover { background: #303236; }
 /* Иконка выхода — единственная «зашито-тёмная» в меню, инвертируем в светлую */
 :root[data-theme="dark"] .pm-logout img { filter: invert(1); }
-/* Стрелка тултипа — светлая версия под инвертированную плашку */
-:root[data-theme="dark"] .nav-item[aria-label]::before {
+/* Стрелка тултипа — светлая версия под инвертированную плашку.
+   Селектор с [data-state="collapsed"] — чтобы перебить базовое правило по специфичности. */
+:root[data-theme="dark"] .sidebar[data-state="collapsed"] .nav-item[aria-label]::before {
   background-image: url("icons/tooltip-arrow-light.svg");
 }
 
@@ -274,7 +279,7 @@ body {
 }
 
 .user-avatar {
-  border-radius: 50%;
+  border-radius: 8px;        /* квадрат со скруглением, как в макете */
   object-fit: cover;
 }
 
@@ -285,6 +290,59 @@ body {
   border: none;
   margin: 0;
   background: var(--stroke);
+}
+
+/* ---------- Пункт «Версия» (некликабельный, серый, с тултипом) ---------- */
+.version-item {
+  cursor: default;
+  color: var(--text-secondary);
+}
+.version-item .nav-item__icon { color: var(--icon-secondary); }
+/* при наведении текст и иконка светлеют */
+.version-item:hover {
+  background: transparent;             /* без подсветки — не кликается */
+  color: var(--text-tertiary);
+}
+.version-item:hover .nav-item__icon { color: var(--icon-tertiary); }
+
+/* Тултип версии — виден при наведении в любом состоянии */
+.version-item::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg-inverted);
+  color: var(--text-inverted);
+  font-family: var(--font-compact);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: pre;          /* переносы строк из data-tooltip (&#10;) */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+}
+.version-item::before {
+  content: "";
+  position: absolute;
+  left: calc(100% + 3px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 9px;
+  height: 36px;
+  background: url("icons/tooltip-arrow.svg") no-repeat center / contain;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+}
+.version-item:hover::after,
+.version-item:hover::before { opacity: 1; }
+:root[data-theme="dark"] .version-item::before {
+  background-image: url("icons/tooltip-arrow-light.svg");
 }
 
 /* =========================================================
